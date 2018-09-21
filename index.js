@@ -4,12 +4,53 @@ window.eval = global.eval = function () {
   throw new Error(`Sorry, this app does not support window.eval().`);
 };
 
-const { desktopCapturer } = require('electron');
+const { ipcRenderer, desktopCapturer } = require('electron');
+
 const fs = require('fs');
 
-document.addEventListener('DOMContentLoaded', () => {
+const dbFile = 'store.txt';
 
-  const dbFile = 'store.txt';
+function softToI(s) {
+  var ageInt = parseInt(s);
+  if(isNaN(ageInt)) ageInt = '';
+  return ageInt;
+}
+
+function saveDb() {
+  fs.open(dbFile, 'w', (err, fd) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        console.error("Couldn't find db file.");
+        return;
+      }
+
+      throw err;
+    }
+
+    var ws = fs.createWriteStream('w', {encoding: 'UTF-8', fd: fd});
+
+    var trRows = document.querySelectorAll('table.cli-list tbody tr');
+    for(var i = 0; i< trRows.length; i++) {
+      var td1 = trRows[i].children[0], td2 = trRows[i].children[1];
+      var name = td1.innerText, age = softToI(td2.innerText);
+      ws.write(`${name},${age}\n`);
+    }
+    
+    ws.end();
+  });
+}
+
+ipcRenderer.on('synchronous-message', (event, arg) => {
+
+  console.log("Received sync message from main in Renderer process.");
+
+  if(arg === 'will-quit') {
+    console.log("App is quitting.");
+    saveDb();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
 
   function addPerson(name, age) {
     var tr = document.createElement('tr');
@@ -18,9 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     td1.appendChild(t1);
 
     var td2 = document.createElement('td');
-    var ageInt = parseInt(age);
-    if(isNaN(ageInt)) ageInt = '';
-    t1 = document.createTextNode(ageInt);
+    t1 = document.createTextNode(softToI(age));
     td2.appendChild(t1);
 
     tr.appendChild(td1);
@@ -34,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fs.open(dbFile, 'r', (err, fd) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        console.error("Couldn't fine db file.");
+        console.error("Couldn't find db file.");
         return;
       }
 
@@ -129,6 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelector('input[name="start_screen_record"]').addEventListener('click', enterRecording);
 
+  document.querySelector('input[name=save_data]').addEventListener('click', (e) => {
+    e.preventDefault();
+    saveDb();
+  });
+
   document.querySelector('.newAgentForm').addEventListener('submit', (e) => {
 
     e.stopPropagation();
@@ -146,5 +190,5 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   });
 
-
+  ipcRenderer.send('asynchronous-message', 'loaded.');
 });
