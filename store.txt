@@ -1,4 +1,2 @@
-sandy,23
-bob,45
-alex,45
-gsdfg,34
+Roger,25
+Jeff,32

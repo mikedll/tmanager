@@ -61,6 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
     tr.appendChild(td1);
     tr.appendChild(td2);
 
+    var td = document.createElement('td');
+    var a = document.createElement('a');
+    var t = document.createTextNode('X');
+    a.appendChild(t);
+    a.href = '#';
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.target.parentElement.parentElement.remove();
+    });
+    td.appendChild(a);
+
+    tr.appendChild(td);
+
     var p = document.querySelector('.cli-list tbody');
     p.appendChild(tr);  
   }
