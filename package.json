@@ -1,0 +1,16 @@
+{
+  "name": "tmanager",
+  "version": "1.0.0",
+  "description": "App for managing clients.",
+  "main": "main.js",
+  "dependencies": {
+    "electron": "^3.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "Michael Rivera",
+  "license": "MIT"
+}
