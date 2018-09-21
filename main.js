@@ -23,18 +23,3 @@ app.on('window-all-closed', () => {
   }
 });
 
-var mainRenderer = null;
-
-ipcMain.on('asynchronous-message', (event, arg) => {
-  mainRenderer = event.sender;
-});
-
-app.on('will-quit', (e) => {
-
-  if(mainRenderer !== null) {
-    console.log("quitting");
-    mainRenderer.sendSync('synchronous-message', 'will-quit');
-    console.log("sent sync");
-  }
-  
-});

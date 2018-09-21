@@ -4,7 +4,7 @@ window.eval = global.eval = function () {
   throw new Error(`Sorry, this app does not support window.eval().`);
 };
 
-const { ipcRenderer, desktopCapturer } = require('electron');
+const { desktopCapturer } = require('electron');
 
 const fs = require('fs');
 
@@ -40,15 +40,11 @@ function saveDb() {
   });
 }
 
-ipcRenderer.on('synchronous-message', (event, arg) => {
-
-  console.log("Received sync message from main in Renderer process.");
-
-  if(arg === 'will-quit') {
-    console.log("App is quitting.");
-    saveDb();
-  }
-});
+window.onbeforeunload = function(e) {
+  console.log("Closing.");
+  saveDb();
+  return undefined;
+};
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -190,5 +186,4 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   });
 
-  ipcRenderer.send('asynchronous-message', 'loaded.');
 });
