@@ -6,3 +6,17 @@ table.cli-list {
 .capture-gui {
   margin-bottom: 2em;
 }
+
+.capture-gui video {
+  display: none;
+}
+
+.capture-gui img.screenshot {
+  display: none;
+  width: 480;
+  height: 360;
+}
+
+.capture-gui .menu {
+  margin-top: 2em;
+}

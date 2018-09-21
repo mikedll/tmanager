@@ -8,32 +8,40 @@
 </head>
 <body>
 
+
   <h1>Clients</h1>
 
-<div class="capture-gui">
-  <video width="480" height="360">
-    
-  </video>
-</div>
+  <div class="capture-gui">
+    <canvas id="canvas1" style="display: none;"></canvas>
+    <video width="480" height="360">
+    </video>
 
-<div class="gui">
-  <form action="" type="GET" class="newAgentForm">
-    <input type="text" defaultValue="" id="name" placeholder="Client Name"/>
-    <input type="text" defaultValue="" id="age" placeholder="Age"/>
-    <br/>
-    <input type="submit" value="Add"/>
-  </form>
-</div>
+    <img src="" class="screenshot"/>
 
-<table class="cli-list">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Age</th>
-    </tr>
-  </thead>
-  <tbody>
-  </tbody>
-</table>
+    <div class="menu">
+      <input type="button" name="start_screen_record" value="Record First Screen."/>
+    </div>
+  </div>
+
+  <div class="gui">
+    <form action="" type="GET" class="newAgentForm">
+      <input type="text" defaultValue="" id="name" placeholder="Client Name"/>
+      <input type="text" defaultValue="" id="age" placeholder="Age"/>
+      <br/>
+      <input type="submit" value="Add"/>
+    </form>
+  </div>
+
+  <table class="cli-list">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
 </body>
 </html>

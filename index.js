@@ -31,11 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
 
-  fs.stat(dbFile, (err, stats) => {
-    if (err) throw err;
-    console.log(`stats: ${JSON.stringify(stats)}`);
-  });
-
   fs.open(dbFile, 'r', (err, fd) => {
     if (err) {
       if (err.code === 'ENOENT') {
@@ -46,11 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
       throw err;
     }
 
-    var rs = fs.createReadStream('', {encoding: 'UTF-8', fd: fd});
-
-    rs.on('readable', () => {
-      var contents = rs.read(1024);
-      var rows = contents.split('\n');
+    fs.createReadStream('', {encoding: 'UTF-8', fd: fd})
+    .on('data', (data) => {
+      var rows = data.split('\n');
       for (var i = 0; i < rows.length; i++) {
         var row = rows[i].trim();
         if(row === '') continue;
@@ -58,41 +51,83 @@ document.addEventListener('DOMContentLoaded', () => {
         var fields = row.split(',');
         addPerson(fields[0].trim(), fields[1]);
       }
-
-      fd.close();
+    })
+    .on('close', () => {
+      // Nothing really to do.
     });
   });
 
-  desktopCapturer.getSources({types: ['screen']}, (error, sources) => {
-    if(error) throw error;
+  function enterRecording(e) {
+    e.preventDefault();
+    startScreenRecording();
+  }
 
-    for (let i = 0; i < sources.length; ++i) {
-      if (i == 0) {
-        navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: sources[i].id
-            }
-          }
-        }).then((stream) => handleStream(stream))
-        .catch((e) => handleError(e));
+  function startScreenRecording() {
+    const captureGui = document.querySelector('.capture-gui');
+    const videoNode = captureGui.querySelector('video');
+    const videoToggle = captureGui.querySelector('input[name="start_screen_record"]');
+    const canvasEl = captureGui.querySelector('#canvas1');
+    const imgEl = captureGui.querySelector('img.screenshot');
 
-        return;
-      }
+    function handleStream(stream) {
+      videoNode.srcObject = stream;
+      videoNode.onloadedmetadata = (e) => videoNode.play();
     }
-  });
 
-  function handleStream(stream) {
-    const video = document.querySelector('video');
-    video.srcObject = stream;
-    video.onloadedmetadata = (e) => video.play();
+    function handleError(e) {
+      console.log(e);
+    }
+
+    videoNode.style.display = 'block';
+    imgEl.style.display = "none";
+
+    desktopCapturer.getSources({types: ['screen']}, (error, sources) => {
+      if(error) throw error;
+
+      for (let i = 0; i < sources.length; ++i) {
+        if (i == 0) {
+          navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: sources[i].id
+              }
+            }
+          }).then((stream) => handleStream(stream))
+            .catch((e) => handleError(e));
+
+          return;
+        }
+      }
+    });
+
+    function takeScreenshot(e) {
+      e.preventDefault();
+
+      videoToggle.removeEventListener('click', takeScreenshot);
+
+      canvasEl.width = videoNode.videoWidth;
+      canvasEl.height = videoNode.videoHeight;
+      canvasEl.getContext('2d').drawImage(videoNode, 0, 0);
+
+      imgEl.src = canvasEl.toDataURL('image/png');
+      imgEl.style.display = "block";
+      videoNode.srcObject.getVideoTracks().forEach(track => track.stop());
+
+      videoNode.style.display = 'none';
+
+      videoToggle.value = "Record First Screen.";
+      videoToggle.addEventListener('click', enterRecording);
+    }
+
+    videoToggle.removeEventListener('click', enterRecording);
+    videoToggle.value = "Take screenshot.";
+    videoToggle.addEventListener('click', takeScreenshot);
+
   }
 
-  function handleError(e) {
-    console.log(e);
-  }
+  document.querySelector('input[name="start_screen_record"]').addEventListener('click', enterRecording);
 
   document.querySelector('.newAgentForm').addEventListener('submit', (e) => {
 
