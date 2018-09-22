@@ -8,10 +8,47 @@ const $ = require('jquery');
 const { desktopCapturer } = require('electron');
 const fs = require('fs');
 
-const pngUrlToBuffer = require('./image.js');
+const imageTools = require('./image.js');
 
 const dbFile = 'store.txt';
 const nextImageFile = 'tmp/img.png';
+
+function renderImage(buffer) {
+  var node = $('<img src=""/>');
+  const dataUrl = imageTools.bufferToPngUrl(buffer);
+  node.attr('src', dataUrl);
+
+  $('.past-screenshots')
+    .prepend(node)
+    .show();
+}
+
+function loadScreenshotFromDisk() {
+  var imageData = null;
+  var totalSize = 0;
+
+  fs.open(nextImageFile, 'r', (err, fd) => {
+    if(err) {
+      if (err.code === 'ENOENT') {
+        console.error("Couldn't find image file.");
+      }
+
+      throw err;
+    }
+
+    var rs = fs.createReadStream('', {fd: fd})
+    .on('data', (chunk) => {
+      const newSize = totalSize + chunk.length;
+      imageData = Buffer.concat((imageData === null) ? [chunk] : [imageData, chunk], newSize);
+    })
+    .on('close', () => {
+      renderImage(imageData);
+    });
+
+  });
+
+  return imageData;
+}
 
 function softToI(s) {
   var ageInt = parseInt(s);
@@ -23,7 +60,7 @@ function writeBuffer(blob) {
   fs.open(nextImageFile, 'w', (err, fd) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        console.error("Couldn't find db file.");
+        console.error("Couldn't find image file.");
         return;
       }
 
@@ -36,7 +73,6 @@ function writeBuffer(blob) {
     ws.end();
   });
 }
-
 
 function saveDb() {
   fs.open(dbFile, 'w', (err, fd) => {
@@ -62,45 +98,44 @@ function saveDb() {
   });
 }
 
+function addPerson(name, age) {
+  var tr = document.createElement('tr');
+  var td1 = document.createElement('td');
+  var t1 = document.createTextNode(name);
+  td1.appendChild(t1);
+
+  var td2 = document.createElement('td');
+  t1 = document.createTextNode(softToI(age));
+  td2.appendChild(t1);
+
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+
+  var td = document.createElement('td');
+  var a = document.createElement('a');
+  var t = document.createTextNode('X');
+  a.appendChild(t);
+  a.href = '#';
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.target.parentElement.parentElement.remove();
+  });
+  td.appendChild(a);
+
+  tr.appendChild(td);
+
+  var p = document.querySelector('.cli-list tbody');
+  p.appendChild(tr);  
+}
+
 window.onbeforeunload = function(e) {
   console.log("Closing.");
   saveDb();
   return undefined;
 };
 
-document.addEventListener('DOMContentLoaded', () => {
 
-  function addPerson(name, age) {
-    var tr = document.createElement('tr');
-    var td1 = document.createElement('td');
-    var t1 = document.createTextNode(name);
-    td1.appendChild(t1);
-
-    var td2 = document.createElement('td');
-    t1 = document.createTextNode(softToI(age));
-    td2.appendChild(t1);
-
-    tr.appendChild(td1);
-    tr.appendChild(td2);
-
-    var td = document.createElement('td');
-    var a = document.createElement('a');
-    var t = document.createTextNode('X');
-    a.appendChild(t);
-    a.href = '#';
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.target.parentElement.parentElement.remove();
-    });
-    td.appendChild(a);
-
-    tr.appendChild(td);
-
-    var p = document.querySelector('.cli-list tbody');
-    p.appendChild(tr);  
-  }
-  
-
+function onDocLoad() {
   fs.open(dbFile, 'r', (err, fd) => {
     if (err) {
       if (err.code === 'ENOENT') {
@@ -187,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
       videoNode.srcObject.getVideoTracks().forEach(track => track.stop());
       videoNode.style.display = 'none';
 
-      writeBuffer(pngUrlToBuffer(dataUrl));
+      writeBuffer(imageTools.pngUrlToBuffer(dataUrl));
 
       videoToggle.value = "Record First Screen.";
       videoToggle.addEventListener('click', enterRecording);
@@ -223,4 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   });
 
+  loadScreenshotFromDisk();
+}
+
+document.addEventListener('DOMContentLoaded', () => {  
+  onDocLoad();
 });

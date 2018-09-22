@@ -1,4 +1,17 @@
 
+function bufferToPngUrl(buffer) {
+
+  var byteString = "";
+
+  for(var i = 0; i < buffer.length; i++) {
+    byteString += String.fromCharCode(buffer[i]);
+  }
+
+  const b64s = btoa(byteString);
+
+  return `data:image/png;base64,${b64s}`;
+}
+
 function pngUrlToBuffer(dataURI) {
   const uriParts = dataURI.split(',');
 
@@ -10,17 +23,20 @@ function pngUrlToBuffer(dataURI) {
   else
     byteString = unescape(uriParts[1]);
 
-  // separate out the mime component
-  var mimeString = uriParts[0].split(':')[1].split(';')[0];
   // write the bytes of the string to a typed array
-  var i8a = new Uint8Array(byteString.length);
+  var ui8a = new Uint8Array(byteString.length);
   for (var i = 0; i < byteString.length; i++) {
-    i8a[i] = byteString.charCodeAt(i);
+    ui8a[i] = byteString.charCodeAt(i);
   }
-  return Buffer.from(i8a);
+  return Buffer.from(ui8a);
 }
 
-module.exports = pngUrlToBuffer;
+module.exports = {
+  pngUrlToBuffer: pngUrlToBuffer,
+  bufferToPngUrl: bufferToPngUrl
+};
+
+
 
 
 
