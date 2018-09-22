@@ -4,6 +4,7 @@ window.eval = global.eval = function () {
   throw new Error(`Sorry, this app does not support window.eval().`);
 };
 
+const $ = require('jquery');
 const { desktopCapturer } = require('electron');
 
 const fs = require('fs');
@@ -29,7 +30,7 @@ function saveDb() {
 
     var ws = fs.createWriteStream('w', {encoding: 'UTF-8', fd: fd});
 
-    var trRows = document.querySelectorAll('table.cli-list tbody tr');
+    var trRows = $('table.cli-list tbody tr');
     for(var i = 0; i< trRows.length; i++) {
       var td1 = trRows[i].children[0], td2 = trRows[i].children[1];
       var name = td1.innerText, age = softToI(td2.innerText);

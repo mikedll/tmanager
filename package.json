@@ -4,7 +4,8 @@
   "description": "App for managing clients.",
   "main": "main.js",
   "dependencies": {
-    "electron": "^3.0.0"
+    "electron": "^3.0.0",
+    "jquery": "^3.3.1"
   },
   "devDependencies": {},
   "scripts": {
