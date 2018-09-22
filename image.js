@@ -1,6 +1,5 @@
 
 function bufferToPngUrl(buffer) {
-
   var byteString = "";
 
   for(var i = 0; i < buffer.length; i++) {
@@ -10,6 +9,7 @@ function bufferToPngUrl(buffer) {
   const b64s = btoa(byteString);
 
   return `data:image/png;base64,${b64s}`;
+
 }
 
 function pngUrlToBuffer(dataURI) {

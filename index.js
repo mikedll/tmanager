@@ -14,7 +14,7 @@ const dbFile = 'store.txt';
 const nextImageFile = 'tmp/img.png';
 
 function renderImage(buffer) {
-  var node = $('<img src=""/>');
+  var node = $('<img/>');
   const dataUrl = imageTools.bufferToPngUrl(buffer);
   node.attr('src', dataUrl);
 
@@ -38,8 +38,8 @@ function loadScreenshotFromDisk() {
 
     var rs = fs.createReadStream('', {fd: fd})
     .on('data', (chunk) => {
-      const newSize = totalSize + chunk.length;
-      imageData = Buffer.concat((imageData === null) ? [chunk] : [imageData, chunk], newSize);
+      totalSize = totalSize + chunk.length;
+      imageData = Buffer.concat((imageData === null) ? [chunk] : [imageData, chunk], totalSize);
     })
     .on('close', () => {
       renderImage(imageData);
