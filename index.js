@@ -1,4 +1,4 @@
-// ESLint will warn about any use of eval(), even this one
+
 // eslint-disable-next-line
 window.eval = global.eval = function () {
   throw new Error(`Sorry, this app does not support window.eval().`);
@@ -6,16 +6,37 @@ window.eval = global.eval = function () {
 
 const $ = require('jquery');
 const { desktopCapturer } = require('electron');
-
 const fs = require('fs');
 
+const pngUrlToBuffer = require('./image.js');
+
 const dbFile = 'store.txt';
+const nextImageFile = 'tmp/img.png';
 
 function softToI(s) {
   var ageInt = parseInt(s);
   if(isNaN(ageInt)) ageInt = '';
   return ageInt;
 }
+
+function writeBuffer(blob) {
+  fs.open(nextImageFile, 'w', (err, fd) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        console.error("Couldn't find db file.");
+        return;
+      }
+
+      throw err;
+    }
+
+    var ws = fs.createWriteStream('w', {fd: fd});
+
+    ws.write(blob);
+    ws.end();
+  });
+}
+
 
 function saveDb() {
   fs.open(dbFile, 'w', (err, fd) => {
@@ -160,11 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
       canvasEl.height = videoNode.videoHeight;
       canvasEl.getContext('2d').drawImage(videoNode, 0, 0);
 
-      imgEl.src = canvasEl.toDataURL('image/png');
+      const dataUrl = canvasEl.toDataURL('image/png');
+      imgEl.src = dataUrl;
       imgEl.style.display = "block";
       videoNode.srcObject.getVideoTracks().forEach(track => track.stop());
-
       videoNode.style.display = 'none';
+
+      writeBuffer(pngUrlToBuffer(dataUrl));
 
       videoToggle.value = "Record First Screen.";
       videoToggle.addEventListener('click', enterRecording);
