@@ -1,17 +1,4 @@
 
-function bufferToPngUrl(buffer) {
-  var byteString = "";
-
-  for(var i = 0; i < buffer.length; i++) {
-    byteString += String.fromCharCode(buffer[i]);
-  }
-
-  const b64s = btoa(byteString);
-
-  return `data:image/png;base64,${b64s}`;
-
-}
-
 function pngUrlToBuffer(dataURI) {
   const uriParts = dataURI.split(',');
 
@@ -28,16 +15,8 @@ function pngUrlToBuffer(dataURI) {
   for (var i = 0; i < byteString.length; i++) {
     ui8a[i] = byteString.charCodeAt(i);
   }
+
   return Buffer.from(ui8a);
 }
 
-module.exports = {
-  pngUrlToBuffer: pngUrlToBuffer,
-  bufferToPngUrl: bufferToPngUrl
-};
-
-
-
-
-
-
+module.exports = pngUrlToBuffer;

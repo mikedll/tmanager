@@ -8,46 +8,18 @@ const $ = require('jquery');
 const { desktopCapturer } = require('electron');
 const fs = require('fs');
 
-const imageTools = require('./image.js');
+const pngUrlToBuffer = require('./image.js');
 
 const dbFile = 'store.txt';
 const nextImageFile = 'tmp/img.png';
 
-function renderImage(buffer) {
-  var node = $('<img/>');
-  const dataUrl = imageTools.bufferToPngUrl(buffer);
-  node.attr('src', dataUrl);
+function loadScreenshotFromDisk() {
+  var node = $('<img src="' + nextImageFile + '"/>');
 
   $('.past-screenshots')
     .prepend(node)
     .show();
-}
-
-function loadScreenshotFromDisk() {
-  var imageData = null;
-  var totalSize = 0;
-
-  fs.open(nextImageFile, 'r', (err, fd) => {
-    if(err) {
-      if (err.code === 'ENOENT') {
-        console.error("Couldn't find image file.");
-      }
-
-      throw err;
-    }
-
-    var rs = fs.createReadStream('', {fd: fd})
-    .on('data', (chunk) => {
-      totalSize = totalSize + chunk.length;
-      imageData = Buffer.concat((imageData === null) ? [chunk] : [imageData, chunk], totalSize);
-    })
-    .on('close', () => {
-      renderImage(imageData);
-    });
-
-  });
-
-  return imageData;
+  return;
 }
 
 function softToI(s) {
@@ -222,7 +194,7 @@ function onDocLoad() {
       videoNode.srcObject.getVideoTracks().forEach(track => track.stop());
       videoNode.style.display = 'none';
 
-      writeBuffer(imageTools.pngUrlToBuffer(dataUrl));
+      writeBuffer(pngUrlToBuffer(dataUrl));
 
       videoToggle.value = "Record First Screen.";
       videoToggle.addEventListener('click', enterRecording);
